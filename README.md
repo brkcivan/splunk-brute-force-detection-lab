@@ -38,6 +38,7 @@ Running `stats` on the filtered data initially showed 5 failed attempts but 2 su
 Applied `dedup _time EventCode Logon_Type` to collapse duplicate events, producing an accurate count: 5 failed attempts → 1 successful logon, within a 46-second window.
 
 ![Final deduplicated stats](05-stats-final-deduped.png)
+
 ## Detection Queries
 See [`queries/detection-queries.txt`](queries/detection-queries.txt) for all 5 queries used, in order.
 
@@ -49,6 +50,7 @@ index=main source="WinEventLog:Security" (EventCode=4625 OR EventCode=4624) (Log
 ```
 
 ## Findings
+
 | Metric | Value |
 |---|---|
 | Failed logon attempts | 5 |
