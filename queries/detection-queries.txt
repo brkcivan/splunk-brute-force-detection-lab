@@ -1,0 +1,21 @@
+# 1. Raw failed logon search
+index=main source="WinEventLog:Security" EventCode=4625
+
+# 2. Initial stats by account (before noise filtering)
+index=main source="WinEventLog:Security" EventCode=4625
+| stats count as failed_attempts by Account_Name
+
+# 3. Time-sorted table, filtered to interactive (2) and unlock (7) logons
+index=main source="WinEventLog:Security" (EventCode=4625 OR EventCode=4624)
+| search Logon_Type=2 OR Logon_Type=7
+| table _time, EventCode, Account_Name, Logon_Type
+| sort _time
+
+# 4. Stats before deduplication (shows inflated successful_logon due to duplicate 4624 events)
+index=main source="WinEventLog:Security" (EventCode=4625 OR EventCode=4624) (Logon_Type=2 OR Logon_Type=7)
+| stats count(eval(EventCode=4625)) as failed_attempts, count(eval(EventCode=4624)) as successful_logon
+
+# 5. Final stats after deduplication
+index=main source="WinEventLog:Security" (EventCode=4625 OR EventCode=4624) (Logon_Type=2 OR Logon_Type=7)
+| dedup _time EventCode Logon_Type
+| stats count(eval(EventCode=4625)) as failed_attempts, count(eval(EventCode=4624)) as successful_logon
