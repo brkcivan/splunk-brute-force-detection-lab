@@ -17,27 +17,27 @@ Locked the workstation and entered the wrong password 5 times, then the correct 
 **2. Initial search**
 Queried raw 4625 events to confirm the failed logon attempts were being logged.
 
-![Raw search for failed logons](01-raw-search-failed-logons.png)
+![Raw search for failed logons](01-raw-search-failed-logons.jpg)
 
 **3. First aggregation — noise identified**
 Grouped failed logons by account using `stats count by Account_Name`. This surfaced the machine account (`BRKCIVAN$`) rather than the interactive user account, and didn't yet isolate genuine user-driven events from background activity.
 
-![Initial stats by account](02-initial-stats-by-account.png)
+![Initial stats by account](02-initial-stats-by-account.jpg)
 
 **4. Isolated genuine user authentication events**
 A time-sorted view of all 4624/4625 events revealed frequent background `SYSTEM` logons (Logon Type 5) unrelated to the test. Filtered to Logon Type 2 (interactive) and 7 (unlock) to isolate real user authentication activity, revealing the 5 failed attempts followed by a successful unlock.
 
-![Time-sorted, Logon Type filtered events](03-time-sorted-logon-type-filtered.png)
+![Time-sorted, Logon Type filtered events](03-time-sorted-logon-type-filtered.jpg)
 
 **5. Duplicate event discovery**
 Running `stats` on the filtered data initially showed 5 failed attempts but 2 successful logons, not 1. Investigation showed Windows generated two 4624 events (Logon Type 7) within the same millisecond for a single unlock action.
 
-![Stats before deduplication](04-stats-before-dedup.png)
+![Stats before deduplication](04-stats-before-dedup.jpg)
 
 **6. Deduplication and final result**
 Applied `dedup _time EventCode Logon_Type` to collapse duplicate events, producing an accurate count: 5 failed attempts → 1 successful logon, within a 46-second window.
 
-![Final deduplicated stats](05-stats-final-deduped.png)
+![Final deduplicated stats](05-stats-final-deduped.jpg)
 
 ## Detection Queries
 See [`queries/detection-queries.txt`](queries/detection-queries.txt) for all 5 queries used, in order.
